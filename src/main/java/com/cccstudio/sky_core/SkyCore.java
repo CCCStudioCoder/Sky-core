@@ -1,9 +1,6 @@
 package com.cccstudio.sky_core;
 
-import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -80,7 +77,7 @@ public class SkyCore {
         }
         @SubscribeEvent
         public static void registerCommands(RegisterCommandsEvent event) {
-            DudePointsCommand.register(event.getDispatcher());
+            GodPointsCommand.register(event.getDispatcher());
         }
     }
 }

@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Core {
 
-    public static List<Dude> Dudes = new ArrayList<>();
+    public static List<God> gods = new ArrayList<>();
 
     // Here's some core functions and objects
 

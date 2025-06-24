@@ -1,8 +1,11 @@
 package com.cccstudio.sky_core;
 
 import com.mojang.serialization.Codec;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.event.level.NoteBlockEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import javax.annotation.Nullable;
@@ -10,64 +13,79 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.cccstudio.sky_core.Core.*;
 
-public class Dude {
+public class God {
 
-    private String NAME;
+    private final ResourceLocation PATH;
 
     private static Supplier<AttachmentType<Integer>> POINT;
 
-    private List<Dude> FRIENDS = new ArrayList<>();
-    private List<Dude> ENEMIES = new ArrayList<>();
+    private final List<God> FRIENDS = new ArrayList<>();
+    private final List<God> ENEMIES = new ArrayList<>();
 
-    private Consumer<Integer> BONUS_HANDLER;
+    private final Consumer<Integer> BONUS_HANDLER;
 
-    public Dude(String name, DeferredRegister<AttachmentType<?>> register,
-                Consumer<Integer> handleBonus) {
+    public God(ResourceLocation path, DeferredRegister<AttachmentType<?>> register,
+               Consumer<Integer> handleBonus, MutableComponent name) {
 
         POINT = register.register(
                 name + "points", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).build()
         );
 
+        PATH = path;
         BONUS_HANDLER = handleBonus;
-        Dudes.add(this);
+        gods.add(this);
 
     }
 
-    public void addFriends(List<Dude> dudes) {
-        FRIENDS.addAll(dudes);
+    public void addFriends(List<God> gods) {
+        FRIENDS.addAll(gods);
     }
-    public void addEnemies(List<Dude> dudes) {
-        ENEMIES.addAll(dudes);
+    public void addEnemies(List<God> gods) {
+        ENEMIES.addAll(gods);
     }
-    public List<Dude> getFriends() {
+    public List<God> getFriends() {
         return FRIENDS;
     }
-    public List<Dude> getEnemies() {
+    public List<God> getEnemies() {
         return ENEMIES;
     }
 
     public String getName() {
-        return NAME;
+        return PATH.getPath();
     }
 
     public Supplier<AttachmentType<Integer>> getPoints() {
         return POINT;
     }
 
+    public void addPoints(Player player, int amount, boolean updateRelated) {
+        player.setData(POINT, player.getData(POINT) + amount);
+        if(updateRelated) {updateRelated(player, amount);}
+    }
     public void addPoints(Player player, int amount) {
         player.setData(POINT, player.getData(POINT) + amount);
+        updateRelated(player, amount);
+    }
+    public void addPoint(Player player) {
+        player.setData(POINT, player.getData(POINT) + 1);
+        updateRelated(player, 1);
     }
 
     public void updateRelated(Player player, int points) {
-        for(Dude dude : FRIENDS) {
+        for(God god : FRIENDS) {
             player.setData(POINT, (int) (player.getData(POINT) + points * 0.7f));
         }
-        for(Dude dude : ENEMIES) {
+        for(God god : ENEMIES) {
             player.setData(POINT, (int) (player.getData(POINT) + points * -0.7f));
         }
+
+        checkBonus(player, Stream.concat(Stream.of(this),
+                Stream.concat(FRIENDS.stream(), ENEMIES.stream())).collect(Collectors.toList()));
     }
 
     public static int levelOf(int points) {
@@ -84,17 +102,17 @@ public class Dude {
         return lvl;
     }
 
-    public void checkBonus(Player player, Dude dude) {
+    public void checkBonus(Player player, God god) {
         BONUS_HANDLER.accept(levelOf(player.getData(POINT)));
     }
-    public void checkBonus(Player player, @Nullable List<Dude> dudes) {
-        if(dudes == null) {
-            for(Dude dude : Dudes) {
-                checkBonus(player, dude);
+    public void checkBonus(Player player, @Nullable List<God> gods) {
+        if(gods == null) {
+            for(God god : Core.gods) {
+                checkBonus(player, god);
             }
         } else {
-            for(Dude dude : dudes) {
-                checkBonus(player, dude);
+            for(God god : gods) {
+                checkBonus(player, god);
             }
         }
     }
@@ -103,8 +121,8 @@ public class Dude {
     public static boolean luck(float chance) {return Math.random() < chance;}
 
     public static void resetPoints(Player player) {
-        for(Dude dude : Dudes) {
-            player.setData(dude.getPoints(), 0);
+        for(God god : gods) {
+            player.setData(god.getPoints(), 0);
         }
     }
 
