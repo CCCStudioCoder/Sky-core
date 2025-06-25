@@ -39,6 +39,7 @@ public class God {
         PATH = path;
         BONUS_HANDLER = handleBonus;
         gods.add(this);
+        GOD_LOCATIONS.put(PATH, this);
 
     }
 

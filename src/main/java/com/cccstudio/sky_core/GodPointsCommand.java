@@ -12,15 +12,19 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.cccstudio.sky_core.Core.gods;
+import static com.cccstudio.sky_core.Core.GOD_LOCATIONS;
 import static com.cccstudio.sky_core.God.*;
 
 public class GodPointsCommand {
@@ -31,9 +35,8 @@ public class GodPointsCommand {
             SharedSuggestionProvider.suggest(ACTIONS, builder);
 
     private static final SuggestionProvider<CommandSourceStack> GOD_SUGGESTIONS = (context, builder) -> {
-        List<String> names = gods.stream()
-                .map(God::getName)
-                .collect(Collectors.toList());
+        List<String> names = GOD_LOCATIONS.keySet().stream().
+                map(ResourceLocation::toString).collect(Collectors.toList());
         return SharedSuggestionProvider.suggest(names, builder);
     };
 
@@ -45,8 +48,8 @@ public class GodPointsCommand {
                                 .then(Commands.argument("god", StringArgumentType.word())
                                         .suggests(GOD_SUGGESTIONS)
                                         .executes(ctx -> {
-                                            String dudeName = StringArgumentType.getString(ctx, "god").toLowerCase();
-                                            God god = getDudeByName(dudeName);
+                                            String godName = StringArgumentType.getString(ctx, "god").toLowerCase();
+                                            God god = GOD_LOCATIONS.get(ResourceLocation.parse(godName));
                                             ServerPlayer player = ctx.getSource().getPlayerOrException();
                                             if (god == null) {
                                                 ctx.getSource().sendFailure(Component.translatable("command.sky_core.godpoints.unknown_god"));
@@ -65,19 +68,19 @@ public class GodPointsCommand {
                                 .executes(ctx -> {
                                     ServerPlayer player = ctx.getSource().getPlayerOrException();
                                     resetPoints(player);
-                                    ctx.getSource().sendSuccess(() -> Component.literal("Points reset for one player."), false);
+                                    ctx.getSource().sendSuccess(() -> Component.translatable("command.sky_core.godpoints.reset_success"), false);
                                     return Command.SINGLE_SUCCESS;
                                 })                        )
                         .then(Commands.argument("action", StringArgumentType.word())
                                 .suggests(ACTION_SUGGESTIONS)
-                                .then(Commands.argument("dude", StringArgumentType.word())
+                                .then(Commands.argument("god", StringArgumentType.word())
                                         .suggests(GOD_SUGGESTIONS)
                                         .then(Commands.argument("arg", IntegerArgumentType.integer())
                                                 .executes(ctx -> exec(
                                                         ctx,
                                                         Collections.singleton(ctx.getSource().getPlayerOrException()),
                                                         StringArgumentType.getString(ctx, "action"),
-                                                        StringArgumentType.getString(ctx, "dude").toLowerCase(),
+                                                        StringArgumentType.getString(ctx, "god").toLowerCase(),
                                                         IntegerArgumentType.getInteger(ctx, "arg"),
                                                         false
                                                 ))
@@ -85,7 +88,7 @@ public class GodPointsCommand {
                                                         .executes(ctx -> exec(
                                                                 ctx,
                                                                 Collections.singleton(ctx.getSource().getPlayerOrException()),                                                                StringArgumentType.getString(ctx, "action"),
-                                                                StringArgumentType.getString(ctx, "dude").toLowerCase(),
+                                                                StringArgumentType.getString(ctx, "god").toLowerCase(),
                                                                 IntegerArgumentType.getInteger(ctx, "arg"),
                                                                 BoolArgumentType.getBool(ctx, "updateRelated")
                                                         ))
@@ -102,22 +105,22 @@ public class GodPointsCommand {
                                             for (ServerPlayer target : targets) {
                                                 resetPoints(target);
                                             }
-                                            ctx.getSource().sendSuccess(() -> Component.literal("Points reset for " + targets.size() + " player(s)."), false);
+                                            ctx.getSource().sendSuccess(() -> Component.translatable("command.sky_core.godpoints.several_reset_success"), false);
                                             return Command.SINGLE_SUCCESS;
                                         })
                                 )
 
 
                                 .then(Commands.literal("get")
-                                        .then(Commands.argument("dude", StringArgumentType.word())
+                                        .then(Commands.argument("god", StringArgumentType.word())
                                                 .suggests(GOD_SUGGESTIONS)
                                                 .executes(ctx -> {
                                                     Collection<ServerPlayer> targets = EntityArgument.getPlayers(ctx, "target");
-                                                    String dudeName = StringArgumentType.getString(ctx, "god").toLowerCase();
-                                                    God god = getDudeByName(dudeName);
+                                                    String godName = StringArgumentType.getString(ctx, "god").toLowerCase();
+                                                    God god = GOD_LOCATIONS.get(ResourceLocation.parse(godName));
 
                                                     if (god == null) {
-                                                        ctx.getSource().sendFailure(Component.literal("Unknown god: " + dudeName));
+                                                        ctx.getSource().sendFailure(Component.translatable("command.sky_core.godpoints.unknown_god"));
                                                         return 0;
                                                     }
 
@@ -135,14 +138,14 @@ public class GodPointsCommand {
 
                                 .then(Commands.argument("action", StringArgumentType.word())
                                         .suggests(ACTION_SUGGESTIONS)
-                                        .then(Commands.argument("dude", StringArgumentType.word())
+                                        .then(Commands.argument("god", StringArgumentType.word())
                                                 .suggests(GOD_SUGGESTIONS)
                                                 .then(Commands.argument("arg", IntegerArgumentType.integer())
                                                         .executes(ctx -> exec(
                                                                 ctx,
                                                                 EntityArgument.getPlayers(ctx, "target"),
                                                                 StringArgumentType.getString(ctx, "action"),
-                                                                StringArgumentType.getString(ctx, "dude").toLowerCase(),
+                                                                StringArgumentType.getString(ctx, "god").toLowerCase(),
                                                                 IntegerArgumentType.getInteger(ctx, "arg"),
                                                                 false
                                                         ))
@@ -151,7 +154,7 @@ public class GodPointsCommand {
                                                                         ctx,
                                                                         EntityArgument.getPlayers(ctx, "target"),
                                                                         StringArgumentType.getString(ctx, "action"),
-                                                                        StringArgumentType.getString(ctx, "dude").toLowerCase(),
+                                                                        StringArgumentType.getString(ctx, "god").toLowerCase(),
                                                                         IntegerArgumentType.getInteger(ctx, "arg"),
                                                                         BoolArgumentType.getBool(ctx, "updateRelated")
                                                                 ))
@@ -166,11 +169,11 @@ public class GodPointsCommand {
     }
 
     private static int exec(CommandContext<CommandSourceStack> ctx, Collection<ServerPlayer> targets,
-                            String action, String dudeName, int value, boolean updateRelated) {
+                            String action, String godName, int value, boolean updateRelated) {
 
-        God god = getDudeByName(dudeName);
+        God god = GOD_LOCATIONS.get(ResourceLocation.parse(godName));
         if (god == null) {
-            ctx.getSource().sendFailure(Component.literal("Unknown god: " + dudeName));
+            ctx.getSource().sendFailure(Component.translatable("command.sky_core.godpoints.unknown_god"));
             return 0;
         }
 
@@ -181,7 +184,7 @@ public class GodPointsCommand {
             case "sub" -> targets.forEach(p -> p.setData(attachment, p.getData(attachment) - value));
             case "set" -> targets.forEach(p -> p.setData(attachment, value));
             default -> {
-                ctx.getSource().sendFailure(Component.literal("Invalid action (add/sub/set)"));
+                ctx.getSource().sendFailure(Component.translatable("command.sky_core.godpoints.invalid_action"));
                 return 0;
             }
         }
@@ -197,12 +200,12 @@ public class GodPointsCommand {
 
     }
 
-    private static God getDudeByName(String name) {
-        for (God d : gods) {
-            if (d.getName().equalsIgnoreCase(name)) {
-                return d;
-            }
+    @EventBusSubscriber
+    public static class registerEvent {
+        @SubscribeEvent
+        public static void registerCommands(RegisterCommandsEvent event) {
+            GodPointsCommand.register(event.getDispatcher());
         }
-        return null;
     }
+
 }

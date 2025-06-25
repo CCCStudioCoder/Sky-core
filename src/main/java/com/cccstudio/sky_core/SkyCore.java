@@ -75,9 +75,5 @@ public class SkyCore {
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
         }
-        @SubscribeEvent
-        public static void registerCommands(RegisterCommandsEvent event) {
-            GodPointsCommand.register(event.getDispatcher());
-        }
     }
 }
