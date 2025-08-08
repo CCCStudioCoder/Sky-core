@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "sky_core:block/altar", "y": 0 },
+    "facing=south": { "model": "sky_core:block/altar", "y": 180 },
+    "facing=east": { "model": "sky_core:block/altar", "y": 90 },
+    "facing=west": { "model": "sky_core:block/altar", "y": 270 }
+  }
+}
