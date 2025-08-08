@@ -12,7 +12,7 @@ public class GodEntityRenderer<T extends GodEntity> extends LivingEntityRenderer
     private final ResourceLocation TEXTURE_LOCATION;
 
     protected GodEntityRenderer(EntityRendererProvider.Context context, ResourceLocation texture) {
-        super(context, new GodEntityModel<>(GodEntityModel.createBodyLayer().bakeRoot()), 0.5f);
+        super(context, new GodModel<>(GodModel.createBodyLayer().bakeRoot()), 0.5f);
         TEXTURE_LOCATION = texture;
     }
 
