@@ -1,0 +1,9 @@
+{
+  "command.sky_core.godpoints.unknown_god": "Unknown god: ",
+  "command.sky_core.godpoints.several_reset_success": "All points reset successfully.",
+  "command.sky_core.godpoints.reset_success": "Your points has been reset.",
+
+  "creative_tabs.sky_core.gods": "Gods",
+
+  "block.sky_core.altar": "Altar"
+}
