@@ -102,8 +102,8 @@ public class GodProvider {
      * @return
      * The {@link GodEntitySupplier} you just created.
      */
-    public GodEntitySupplier<? extends GodEntity> createEntitySupplier(String name, Class<? extends GodEntity> clazz) {
-        GodEntitySupplier<?> result = new GodEntitySupplier<>(name, ENTITY_TYPE, ITEM, clazz);
+    public <T extends GodEntity> GodEntitySupplier<T> createEntitySupplier(String name, Class<T> clazz) {
+        GodEntitySupplier<T> result = new GodEntitySupplier<>(name, ENTITY_TYPE, ITEM, clazz);
         SAVED_SUPPLIERS.put(name, result);
         return result;
     }
