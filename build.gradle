@@ -7,7 +7,7 @@ plugins {
 repositories {
 
     maven {
-        url = "https://maven.pkg.github.com/cccstudio/sky_core"
+        url = "https://maven.pkg.github.com/cccstudiocoder/Sky-core"
     }
     mavenCentral()
 
@@ -118,7 +118,7 @@ dependencies {
 
 group = 'com.cccstudio'
 
-version = '1.1.0'
+version = '1.1.1'
 
 publishing {
     publications {
@@ -127,13 +127,13 @@ publishing {
 
             groupId = 'com.cccstudio'
             artifactId = 'sky_core'
-            version = '1.1.0'
+            version = '1.1.1'
         }
     }
     repositories {
         maven {
             name = 'GitHubPackages'
-            url = uri('https://maven.pkg.github.com/cccstudio/sky_core')
+            url = uri('https://maven.pkg.github.com/cccstudiocoder/Sky-core')
             credentials {
                 username = project.findProperty('gpr.user') ?: System.getenv('GPR_USER')
                 password = project.findProperty('gpr.key') ?: System.getenv('GPR_KEY')

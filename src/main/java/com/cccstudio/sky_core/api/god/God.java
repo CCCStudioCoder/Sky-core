@@ -14,6 +14,7 @@ import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import javax.annotation.Nullable;
+import java.lang.annotation.Documented;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -180,18 +181,37 @@ public class God {
                 Stream.concat(FRIENDS.stream(), ENEMIES.stream())).collect(Collectors.toList()));
     }
 
-    public GodEntitySupplier getEntitySupplier() {
+    /**
+     * @return
+     * The entity supplier passed as a parameter in the constructor.
+     */
+    public GodEntitySupplier<?> getEntitySupplier() {
         return GOD_ENTITY;
     }
 
+    /**
+     * @return
+     * The offerings passed as a parameter in the constructor.
+     */
     public HashMap<Item, Float> getOfferings() {
         return OFFERINGS;
     }
 
+    /**
+     * @return
+     * The quests passed as a parameter in the constructor.
+     */
     public Collection<Quest> getQuests() {
         return QUESTS;
     }
 
+    /**
+     * To use to create other blocks like altar.
+     * @param item
+     * An item offered to the god.
+     * @return
+     * If the player that making this offer wins a point.
+     */
     public boolean rollOffering(Item item) {
         try {
             float probability = OFFERINGS.get(item);
@@ -201,6 +221,10 @@ public class God {
         }
     }
 
+    /**
+     * @return
+     * A relation level between a player and a god, based on his point given as {@code point}.
+     */
     public static int levelOf(int points) {
         int lvl;
 

@@ -49,7 +49,6 @@ public class CubosGod {
                     "cubos_entity",
                     Core.ENTITY_TYPE_REGISTER,
                     Core.ITEM_REGISTER,
-                    new Item.Properties(),
                     CubosEntity.class
             ),
             CUBOS_OFFERINGS,

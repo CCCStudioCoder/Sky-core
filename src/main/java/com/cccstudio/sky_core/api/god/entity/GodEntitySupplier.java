@@ -8,9 +8,8 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
-
-import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 public class GodEntitySupplier<E extends GodEntity> {
 
@@ -29,15 +28,12 @@ public class GodEntitySupplier<E extends GodEntity> {
      * The {@link DeferredRegister} used for registering the {@code EntityType<GodEntity>}.
      * @param itemRegister
      * The same as {@code entityRegister}, but for {@link Item}.
-     * @param properties
-     * Optional additional properties for the {@link #INVOKER}.
      * @param entityClass
      * A class that extends {@link GodEntity}, for registering the {@link EntityType}.
      */
     public GodEntitySupplier(String name,
                              DeferredRegister<EntityType<?>> entityRegister,
                              DeferredRegister.Items itemRegister,
-                             @Nullable Item.Properties properties,
                              Class<E> entityClass) {
         SUPPLIER = entityRegister.register(name, () -> EntityType.Builder.of(
                 (EntityType<GodEntity> type, Level world) -> {
@@ -55,9 +51,11 @@ public class GodEntitySupplier<E extends GodEntity> {
         INVOKER = itemRegister.register(name + "_invoker", () -> {
             try {
                 return new Invoker(
-                        entityClass.newInstance()
+                        entityClass.getConstructor().newInstance()
                 );
-            } catch (InstantiationException | IllegalAccessException e) {
+            } catch (InstantiationException | IllegalAccessException |
+                     InvocationTargetException |
+                     NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
         });
