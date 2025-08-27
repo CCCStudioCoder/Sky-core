@@ -1,7 +1,7 @@
-package com.cccstudio.sky_core;
+package com.cccstudio.sky_core.event;
 
+import com.cccstudio.sky_core.Core;
 import com.cccstudio.sky_core.api.god.entity.GodEntity;
-import com.cccstudio.sky_core.api.quest.QuestHandler;
 import com.cccstudio.sky_core.command.SkyCoreCommands;
 import com.cccstudio.sky_core.cubos.CubosGod;
 import com.cccstudio.sky_core.api.god.God;
@@ -19,11 +19,12 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+
+import java.util.Objects;
 
 @EventBusSubscriber
 public class Event {
@@ -31,15 +32,6 @@ public class Event {
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event) {
         SkyCoreCommands.register(event.getDispatcher());
-    }
-
-    @SubscribeEvent
-    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerEntity(
-                QuestHandler.ENGAGED_QUESTS,
-                EntityType.PLAYER,
-                (player, voi) -> new QuestHandler.QuestCollection()
-        );
     }
 
     @SubscribeEvent
@@ -68,7 +60,7 @@ public class Event {
 
             if(!finding_one) {
                 ((EntityType<?>) (god.getEntitySupplier().getEntity().get())).spawn(level,
-                        randomAround(level.getRandomPlayer().getOnPos(), level), MobSpawnType.TRIGGERED);
+                        randomAround(Objects.requireNonNull(level.getRandomPlayer()).getOnPos(), level), MobSpawnType.TRIGGERED);
             }
         }
     }

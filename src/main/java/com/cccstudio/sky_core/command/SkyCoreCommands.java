@@ -22,7 +22,6 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import java.util.Collection;
 import java.util.List;
-
 import static com.cccstudio.sky_core.api.god.God.*;
 
 public class SkyCoreCommands {
@@ -39,10 +38,10 @@ public class SkyCoreCommands {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
-                net.minecraft.commands.Commands.literal("godpoints")
+                Commands.literal("godpoints")
                         .requires(cs -> cs.hasPermission(2))
-                        .then(net.minecraft.commands.Commands.literal("get")
-                                .then(net.minecraft.commands.Commands.argument("god", GodArgument.god())
+                        .then(Commands.literal("get")
+                                .then(Commands.argument("god", GodArgument.god())
                                         .executes(ctx -> {
                                             God god = GodArgument.getGod(ctx, "god");
                                             ServerPlayer player = ctx.getSource().getPlayerOrException();
@@ -59,22 +58,22 @@ public class SkyCoreCommands {
                                         })
                                 )
                         )
-                        .then(net.minecraft.commands.Commands.literal("reset")
+                        .then(Commands.literal("reset")
                                 .executes(ctx -> {
                                     ServerPlayer player = ctx.getSource().getPlayerOrException();
                                     resetPoints(player);
                                     ctx.getSource().sendSuccess(() -> Component.translatable("command.sky_core.godpoints.reset_success"), false);
                                     return Command.SINGLE_SUCCESS;
                                 })                        )
-                        .then(net.minecraft.commands.Commands.argument("action", StringArgumentType.word())
+                        .then(Commands.argument("action", StringArgumentType.word())
                                 .suggests(GOD_ACTION_SUGGESTIONS)
-                                .then(net.minecraft.commands.Commands.argument("god", GodArgument.god())
-                                        .then(net.minecraft.commands.Commands.argument("arg", IntegerArgumentType.integer())
+                                .then(Commands.argument("god", GodArgument.god())
+                                        .then(Commands.argument("arg", IntegerArgumentType.integer())
                                                 .executes(ctx -> execGodpoints(
                                                         ctx,
                                                         false
                                                 ))
-                                                .then(net.minecraft.commands.Commands.argument("updateRelated", BoolArgumentType.bool())
+                                                .then(Commands.argument("updateRelated", BoolArgumentType.bool())
                                                         .executes(ctx -> execGodpoints(
                                                                 ctx,
                                                                 BoolArgumentType.getBool(ctx, "updateRelated")
@@ -84,9 +83,9 @@ public class SkyCoreCommands {
 
                                 )
                         )
-                        .then(net.minecraft.commands.Commands.argument("target", EntityArgument.players())
+                        .then(Commands.argument("target", EntityArgument.players())
 
-                                .then(net.minecraft.commands.Commands.literal("reset")
+                                .then(Commands.literal("reset")
                                         .executes(ctx -> {
                                             Collection<ServerPlayer> targets = EntityArgument.getPlayers(ctx, "target");
                                             for (ServerPlayer target : targets) {
@@ -98,8 +97,8 @@ public class SkyCoreCommands {
                                 )
 
 
-                                .then(net.minecraft.commands.Commands.literal("get")
-                                        .then(net.minecraft.commands.Commands.argument("god", GodArgument.god())
+                                .then(Commands.literal("get")
+                                        .then(Commands.argument("god", GodArgument.god())
                                                 .executes(ctx -> {
                                                     Collection<ServerPlayer> targets = EntityArgument.getPlayers(ctx, "target");
                                                     God god = GodArgument.getGod(ctx, "god");
@@ -121,15 +120,15 @@ public class SkyCoreCommands {
                                         )
                                 )
 
-                                .then(net.minecraft.commands.Commands.argument("action", StringArgumentType.word())
+                                .then(Commands.argument("action", StringArgumentType.word())
                                         .suggests(GOD_ACTION_SUGGESTIONS)
-                                        .then(net.minecraft.commands.Commands.argument("god", GodArgument.god())
-                                                .then(net.minecraft.commands.Commands.argument("arg", IntegerArgumentType.integer())
+                                        .then(Commands.argument("god", GodArgument.god())
+                                                .then(Commands.argument("arg", IntegerArgumentType.integer())
                                                         .executes(ctx -> execGodpoints(
                                                                 ctx,
                                                                 false
                                                         ))
-                                                        .then(net.minecraft.commands.Commands.argument("updateRelated", BoolArgumentType.bool())
+                                                        .then(Commands.argument("updateRelated", BoolArgumentType.bool())
                                                                 .executes(ctx -> execGodpoints(
                                                                         ctx,
                                                                         BoolArgumentType.getBool(ctx, "updateRelated")

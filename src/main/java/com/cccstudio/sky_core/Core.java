@@ -26,7 +26,7 @@ public class Core {
 
     public static HashMap<ResourceLocation, Quest> QUEST_LOCATIONS = new HashMap<>();
 
-    // Some core DeferredRegister to help you
+    // Some core DeferredRegisters to help you
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPE_REGISTER =
             DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, SkyCore.MODID);
 
