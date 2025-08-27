@@ -43,7 +43,7 @@ public class Event {
     }
 
     @SubscribeEvent
-    public static void serverTick(ServerStartingEvent event) {
+    public static void serverStart(ServerStartingEvent event) {
         for(God god : Core.GODS) {
             ServerLevel level = event.getServer().getLevel(Level.OVERWORLD);
             Class<? extends GodEntity> entity = god.getEntitySupplier().getEntityClass();

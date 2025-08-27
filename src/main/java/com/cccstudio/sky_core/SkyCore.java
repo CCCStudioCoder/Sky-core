@@ -12,7 +12,7 @@ public class SkyCore {
 
     public SkyCore(IEventBus modEventBus, ModContainer modContainer) {
         com.cccstudio.sky_core.Core.register(modEventBus);
-        NeoForge.EVENT_BUS.register(this);
+        //NeoForge.EVENT_BUS.register(this);
     }
 
 }

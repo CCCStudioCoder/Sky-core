@@ -1,7 +1,6 @@
 package com.cccstudio.sky_core.api.quest;
 
 import com.cccstudio.sky_core.SkyCore;
-import com.ibm.icu.impl.coll.Collation;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.capabilities.EntityCapability;
 import org.jetbrains.annotations.NotNull;
@@ -11,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
+@SuppressWarnings("deprecated")
 public class QuestHandler {
 
     public static final EntityCapability<QuestCollection, Void> ENGAGED_QUESTS = EntityCapability.createVoid(
@@ -27,7 +27,7 @@ public class QuestHandler {
     //TODO javadoc
     public static class QuestCollection implements Collection<Quest> {
 
-        private Collection<Quest> CONTENT = new ArrayList<>();
+        private final Collection<Quest> CONTENT = new ArrayList<>();
 
         @Override
         public int size() {
@@ -54,8 +54,9 @@ public class QuestHandler {
             return CONTENT.toArray();
         }
 
+        @SuppressWarnings("unchecked")
         @Override
-        public @NotNull <T> T @NotNull [] toArray(T[] a) {
+        public @NotNull <T> T @NotNull [] toArray(T @NotNull [] a) {
             return (T[]) Arrays.stream(a).toArray();
         }
 
@@ -81,12 +82,12 @@ public class QuestHandler {
 
         @Override
         public boolean removeAll(@NotNull Collection<?> c) {
-            return CONTENT.retainAll(c);
+            return CONTENT.removeAll(c);
         }
 
         @Override
         public boolean retainAll(@NotNull Collection<?> c) {
-            return CONTENT.removeAll(c);
+            return CONTENT.retainAll(c);
         }
 
         @Override
@@ -94,6 +95,7 @@ public class QuestHandler {
             CONTENT.clear();
         }
 
+        @SuppressWarnings("unused")
         public Collection<Quest> cast() {
             return CONTENT;
         }
