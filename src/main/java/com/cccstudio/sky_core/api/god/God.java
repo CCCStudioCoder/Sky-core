@@ -1,20 +1,23 @@
 package com.cccstudio.sky_core.api.god;
 
 import com.cccstudio.sky_core.Core;
+import com.cccstudio.sky_core.SkyCore;
 import com.cccstudio.sky_core.api.god.entity.GodEntitySupplier;
 import com.cccstudio.sky_core.api.quest.Quest;
 import com.mojang.serialization.Codec;
+import net.minecraft.core.Holder;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
-
+import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
-import java.lang.annotation.Documented;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -30,7 +33,7 @@ import static com.cccstudio.sky_core.Core.*;
  * This is the most important class of the API.
  * It provides the constructor and all the related methods.
  */
-public class God {
+public class God implements Comparable<God> {
 
     private final ResourceLocation PATH;
 
@@ -41,13 +44,17 @@ public class God {
 
     private static Consumer<Integer> BONUS_HANDLER;
 
-    MutableComponent DISPLAY_NAME;
+    private final MutableComponent DISPLAY_NAME;
 
     private final GodEntitySupplier<?> GOD_ENTITY;
 
     private final HashMap<Item, Float> OFFERINGS;
 
     private final Collection<Quest> QUESTS;
+
+    private final ResourceKey<God> KEY;
+
+    private final Holder.Reference<God> REF = GOD_REGISTRY.createIntrusiveHolder(this);
 
 
     /**
@@ -86,6 +93,7 @@ public class God {
         GOD_ENTITY = entity;
         OFFERINGS = offerings;
         QUESTS = quests;
+        KEY = ResourceKey.create(GOD_REGISTRY_KEY, path);
 
         for(Quest quest : quests) {
             quest.USING_GODS.add(this);
@@ -206,6 +214,20 @@ public class God {
     }
 
     /**
+     * @param tag
+     * The tag to check.
+     * @return
+     * If the god is in the tag.
+     */
+    public boolean is(TagKey<God> tag) {
+        return REF.is(tag);
+    }
+
+    public ResourceKey<God> getKey() {
+        return KEY;
+    }
+
+    /**
      * To use to create other blocks like altar.
      * @param item
      * An item offered to the god.
@@ -286,6 +308,11 @@ public class God {
         for(God god : Core.GODS) {
             player.setData(god.getPoints(), 0);
         }
+    }
+
+    @Override
+    public int compareTo(@NotNull God o) {
+        return this.OFFERINGS.size() - o.OFFERINGS.size();
     }
 
 }

@@ -1,5 +1,6 @@
 package com.cccstudio.sky_core.event;
 
+import com.cccstudio.sky_core.Core;
 import com.cccstudio.sky_core.api.god.entity.renderer.GodModel;
 import com.cccstudio.sky_core.api.quest.QuestHandler;
 import net.minecraft.world.entity.EntityType;
@@ -8,6 +9,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.registries.NewRegistryEvent;
 
 import static com.cccstudio.sky_core.SkyCore.MODID;
 
@@ -21,6 +23,12 @@ public class ModBusEvents {
                 EntityType.PLAYER,
                 (player, voi) -> new QuestHandler.QuestCollection()
         );
+    }
+
+    @SubscribeEvent
+    public static void registerRegistries(NewRegistryEvent event) {
+        event.register(Core.GOD_REGISTRY);
+        event.register(Core.QUEST_REGISTRY);
     }
 
     @EventBusSubscriber(modid = MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)

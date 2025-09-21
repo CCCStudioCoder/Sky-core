@@ -1,7 +1,6 @@
 package com.cccstudio.sky_core.command;
 
-import com.cccstudio.sky_core.api.argument_type.GodArgument;
-import com.cccstudio.sky_core.api.argument_type.QuestArgument;
+import com.cccstudio.sky_core.Core;
 import com.cccstudio.sky_core.api.god.God;
 import com.cccstudio.sky_core.api.quest.Quest;
 import com.mojang.brigadier.Command;
@@ -11,19 +10,28 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.datafixers.util.Either;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.ResourceOrTagKeyArgument;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.neoforge.attachment.AttachmentType;
 import java.util.Collection;
 import java.util.List;
-import static com.cccstudio.sky_core.api.god.God.*;
+import java.util.function.Supplier;
 
+/**
+ * Create the two SkyCore-related commands:
+ * {@code /godpoints} and {@code /godquests}.
+ * @see com.cccstudio.sky_core.event.Event#registerCommands
+ */
 public class SkyCoreCommands {
 
     private static final List<String> GOD_ACTIONS = List.of("add", "sub", "set", "reset", "get");
@@ -35,39 +43,29 @@ public class SkyCoreCommands {
             (context, builder) ->
                     SharedSuggestionProvider.suggest(List.of("grant", "revoke"), builder);
 
+    private static final DynamicCommandExceptionType INVALID_GOD_EXCEPTION =
+            new DynamicCommandExceptionType((god) -> Component.translatable("command.sky_core.godpoints.unknown_god"));
+
+    private static final DynamicCommandExceptionType INVALID_ACTION_EXCEPTION =
+            new DynamicCommandExceptionType((action) -> Component.translatable("command.sky_core.godpoints.unknown_action", action));
+
+    private static final DynamicCommandExceptionType INVALID_QUEST_EXCEPTION =
+            new DynamicCommandExceptionType((quest) -> Component.translatable("command.sky_core.godquests.unknown_quest"));
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("godpoints")
                         .requires(cs -> cs.hasPermission(2))
                         .then(Commands.literal("get")
-                                .then(Commands.argument("god", GodArgument.god())
-                                        .executes(ctx -> {
-                                            God god = GodArgument.getGod(ctx, "god");
-                                            ServerPlayer player = ctx.getSource().getPlayerOrException();
-                                            if (god == null) {
-                                                ctx.getSource().sendFailure(Component.translatable("command.sky_core.godpoints.unknown_god"));
-                                                return 0;
-                                            }
-
-                                            AttachmentType<Integer> attachment = god.getPoints().get();
-
-                                            ctx.getSource().sendSuccess(() -> Component.literal("[" + god.getName() + "] → " + player.getData(attachment) + " for " + player.getDisplayName().getString()), false);
-
-                                            return Command.SINGLE_SUCCESS;
-                                        })
+                                .then(Commands.argument("god", ResourceOrTagKeyArgument.resourceOrTagKey(Core.GOD_REGISTRY_KEY))
+                                        .executes(ctx -> getPoints(ctx, ctx.getSource().getPlayerOrException()))
                                 )
                         )
                         .then(Commands.literal("reset")
-                                .executes(ctx -> {
-                                    ServerPlayer player = ctx.getSource().getPlayerOrException();
-                                    resetPoints(player);
-                                    ctx.getSource().sendSuccess(() -> Component.translatable("command.sky_core.godpoints.reset_success"), false);
-                                    return Command.SINGLE_SUCCESS;
-                                })                        )
+                                .executes(ctx -> resetPoints(ctx, ctx.getSource().getPlayerOrException()))                        )
                         .then(Commands.argument("action", StringArgumentType.word())
                                 .suggests(GOD_ACTION_SUGGESTIONS)
-                                .then(Commands.argument("god", GodArgument.god())
+                                .then(Commands.argument("god", ResourceOrTagKeyArgument.resourceOrTagKey(Core.GOD_REGISTRY_KEY))
                                         .then(Commands.argument("arg", IntegerArgumentType.integer())
                                                 .executes(ctx -> execGodpoints(
                                                         ctx,
@@ -83,46 +81,22 @@ public class SkyCoreCommands {
 
                                 )
                         )
-                        .then(Commands.argument("target", EntityArgument.players())
+                        .then(Commands.argument("targets", EntityArgument.players())
 
                                 .then(Commands.literal("reset")
-                                        .executes(ctx -> {
-                                            Collection<ServerPlayer> targets = EntityArgument.getPlayers(ctx, "target");
-                                            for (ServerPlayer target : targets) {
-                                                resetPoints(target);
-                                            }
-                                            ctx.getSource().sendSuccess(() -> Component.translatable("command.sky_core.godpoints.several_reset_success"), false);
-                                            return Command.SINGLE_SUCCESS;
-                                        })
+                                        .executes(ctx -> resetPoints(ctx, EntityArgument.getPlayer(ctx, "target")))
                                 )
 
 
                                 .then(Commands.literal("get")
-                                        .then(Commands.argument("god", GodArgument.god())
-                                                .executes(ctx -> {
-                                                    Collection<ServerPlayer> targets = EntityArgument.getPlayers(ctx, "target");
-                                                    God god = GodArgument.getGod(ctx, "god");
-
-                                                    if (god == null) {
-                                                        ctx.getSource().sendFailure(Component.translatable("command.sky_core.godpoints.unknown_god"));
-                                                        return 0;
-                                                    }
-
-                                                    AttachmentType<Integer> attachment = god.getPoints().get();
-
-                                                    for (ServerPlayer target : targets) {
-                                                        int value = target.getData(attachment);
-                                                        ctx.getSource().sendSuccess(() -> Component.literal("[" + god.getName() + "] → " + value + " for " + target.getDisplayName().getString()), false);
-                                                    }
-
-                                                    return Command.SINGLE_SUCCESS;
-                                                })
+                                        .then(Commands.argument("god", ResourceOrTagKeyArgument.resourceOrTagKey(Core.GOD_REGISTRY_KEY))
+                                                .executes(ctx -> getPoints(ctx, EntityArgument.getPlayer(ctx, "target")))
                                         )
                                 )
 
                                 .then(Commands.argument("action", StringArgumentType.word())
                                         .suggests(GOD_ACTION_SUGGESTIONS)
-                                        .then(Commands.argument("god", GodArgument.god())
+                                        .then(Commands.argument("god", ResourceOrTagKeyArgument.resourceOrTagKey(Core.GOD_REGISTRY_KEY))
                                                 .then(Commands.argument("arg", IntegerArgumentType.integer())
                                                         .executes(ctx -> execGodpoints(
                                                                 ctx,
@@ -142,70 +116,121 @@ public class SkyCoreCommands {
         );
 
         dispatcher.register(
-                Commands.literal("godquest")
+                Commands.literal("godquests")
                         .then(Commands.argument("players", EntityArgument.players()))
                         .then(Commands.argument("action", StringArgumentType.word())
                                 .suggests(QUEST_ACTION_SUGGESTION))
-                        .then(Commands.argument("quest", QuestArgument.quest()))
-                        .then(Commands.argument("gods", GodArgument.gods())
-                                .executes(ctx -> execQuest(ctx, 0)))
+                        .then(Commands.argument("quest", ResourceOrTagKeyArgument.resourceOrTagKey(Core.QUEST_REGISTRY_KEY)))
                         .then(Commands.argument("points", IntegerArgumentType.integer()))
-                        .executes(ctx -> execQuest(ctx, IntegerArgumentType.getInteger(ctx, "point")))
+                        .executes(SkyCoreCommands::execQuests)
+                        .then(Commands.argument("gods", ResourceOrTagKeyArgument.resourceOrTagKey(Core.GOD_REGISTRY_KEY))
+                                .executes(SkyCoreCommands::execQuests))
         );
 
     }
 
+    private static Collection<God> getGodsFrom(TagKey<God> key) {
+        return Core.GODS.stream().filter(god -> god.is(key)).toList();
+    }
+
     private static int execGodpoints(CommandContext<CommandSourceStack> ctx, boolean updateRelated) throws CommandSyntaxException {
 
-        Collection<ServerPlayer> targets;
         String action = StringArgumentType.getString(ctx, "action");
-        God god = GodArgument.getGod(ctx, "god");
-        int value = IntegerArgumentType.getInteger(ctx, "arg");
-
+        int arg = IntegerArgumentType.getInteger(ctx, "arg");
+        Collection<ServerPlayer> targets;
         try {
-            targets = EntityArgument.getPlayers(ctx, "target");
+            targets = EntityArgument.getPlayers(ctx, "targets");
         } catch (CommandSyntaxException e) {
             targets = List.of(ctx.getSource().getPlayerOrException());
-        } catch (RuntimeException e) {
-            //TODO translations
-            ctx.getSource().sendFailure(Component.translatable("command.sky_core.godpoints.not_a_player")); //command source isn't a player. Please give at least one target!
-            throw new RuntimeException(e);
+        }
+        Collection<God> gods;
+        Either<ResourceKey<God>, TagKey<God>> god = ResourceOrTagKeyArgument.getResourceOrTagKey
+                (ctx, "god", Core.GOD_REGISTRY_KEY, INVALID_GOD_EXCEPTION).unwrap();
+        if(god.left().isPresent()) {
+            gods = List.of(Core.GOD_LOCATIONS.get(god.left().get().location()));
+        } else {
+            gods = getGodsFrom(god.right().get());
         }
 
-        if (god == null) {
-            ctx.getSource().sendFailure(Component.translatable("command.sky_core.godpoints.unknown_god"));
-            return 0;
-        }
-
-        AttachmentType<Integer> attachment = god.getPoints().get();
-
-        switch (action.toLowerCase()) {
-            case "add" -> targets.forEach(p -> p.setData(attachment, p.getData(attachment) + value));
-            case "sub" -> targets.forEach(p -> p.setData(attachment, p.getData(attachment) - value));
-            case "set" -> targets.forEach(p -> p.setData(attachment, value));
-            default -> {
-                ctx.getSource().sendFailure(Component.translatable("command.sky_core.godpoints.invalid_action"));
-                return 0;
+        int successes = 0;
+        for(ServerPlayer player : targets) {
+            for(God selectedGod : gods) {
+                switch (action) {
+                    case "add" -> selectedGod.addPoints(player, arg, updateRelated);
+                    case "sub" -> selectedGod.addPoints(player, -arg, updateRelated);
+                    case "set" -> selectedGod.addPoints
+                            (player, player.getData(selectedGod.getPoints()) - arg, updateRelated);
+                    default -> {
+                        successes--;
+                        throw new CommandSyntaxException(INVALID_ACTION_EXCEPTION, Component.empty());
+                    }
+                }
+                successes++;
             }
         }
 
-        if(updateRelated) {
-            targets.forEach(p -> god.updateRelated(p, value));
-        }
-
-        int updated = targets.iterator().next().getData(attachment);
-        ctx.getSource().sendSuccess(() -> Component.literal("[" + god.getName() + "] → " + updated), false);
-
-        return Command.SINGLE_SUCCESS;
-
+        return Math.max(successes, 0);
     }
 
-    private static int execQuest(CommandContext<CommandSourceStack> context, final int point)
+    private static int resetPoints(CommandContext<CommandSourceStack> ctx, Player player) {
+        God.resetPoints(player);
+
+        ctx.getSource().sendSuccess(() -> Component.translatable("command.sky_core.godpoints.reset_success"), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static int getPoints(CommandContext<CommandSourceStack> ctx, ServerPlayer player) throws CommandSyntaxException {
+        Either<ResourceKey<God>, TagKey<God>> god = ResourceOrTagKeyArgument.getResourceOrTagKey
+                (ctx, "god", Core.GOD_REGISTRY_KEY, INVALID_GOD_EXCEPTION).unwrap();
+
+        if(god.left().isPresent()) {
+            int points = player.getData(Core.GOD_LOCATIONS.get(god.left().get().location()).getPoints());
+            ctx.getSource().sendSuccess((Supplier<Component>) Component.literal
+                    ("[" + god.left().get().location() + "] → " + points), false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            int successes = 0;
+            TagKey<God> tag = god.right().get();
+            for(God selectedGod : Core.GODS) {
+                if(selectedGod.is(tag)) {
+                    int points = player.getData(selectedGod.getPoints().get());
+                    ctx.getSource().sendSuccess((Supplier<Component>) Component.literal
+                            ("[" + selectedGod.getName() + "] → " + points), false);
+                    successes++;
+                }
+            }
+            return successes;
+        }
+    }
+
+    private static int execQuests(CommandContext<CommandSourceStack> context)
             throws CommandSyntaxException {
+        final int point = IntegerArgumentType.getInteger(context, "points");
         final Collection<ServerPlayer> PLAYERS = EntityArgument.getPlayers(context, "players");
         final String ACTION = StringArgumentType.getString(context, "action");
-        final Quest QUEST = QuestArgument.getQuest(context, "quest");
-        final Collection<God> GODS = GodArgument.getGods(context, "gods");
+
+        final Either<ResourceKey<Quest>, TagKey<Quest>> tag = ResourceOrTagKeyArgument.getResourceOrTagKey
+                (context, "quest", Core.QUEST_REGISTRY_KEY, INVALID_QUEST_EXCEPTION).unwrap();
+        final Quest QUEST = tag.left().isPresent()
+                ? Core.QUEST_LOCATIONS.get(tag.left().get().location())
+                : Core.QUEST_LOCATIONS.values().stream()
+                .filter(q -> q.is(tag.right().get()))
+                .findFirst()
+                .orElseThrow(() -> INVALID_QUEST_EXCEPTION.create(tag));
+
+        Collection<God> GODS;
+        try {
+            Either<ResourceKey<God>, TagKey<God>> god = ResourceOrTagKeyArgument.getResourceOrTagKey
+                    (context, "gods", Core.GOD_REGISTRY_KEY, INVALID_GOD_EXCEPTION).unwrap();
+            if(god.left().isPresent()) {
+                GODS = List.of(Core.GOD_LOCATIONS.get(god.left().get().location()));
+            } else {
+                GODS = getGodsFrom(god.right().get());
+            }
+        } catch (CommandSyntaxException e) {
+            GODS = QUEST.USING_GODS;
+        }
 
         for(Player player : PLAYERS) {
             if(ACTION.equals("grant")) {

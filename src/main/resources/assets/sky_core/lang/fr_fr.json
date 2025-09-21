@@ -2,8 +2,12 @@
   "command.sky_core.godpoints.unknown_god": "Dieu inconnu : ",
   "command.sky_core.godpoints.several_reset_success": "Tout les points ont été réinitialisés avec succès.",
   "command.sky_core.godpoints.reset_success": "Vos points ont été réinitialisés.",
-
+  "commands.sky_core.godpoints.not_a_player": "Vous n'avez pas spécifié de joueur.",
+  "commands.sky_core.godpoints.invalid_action": "Action invalide.",
+  "creative_tabs.sky_core.gods": "Dieux",
   "block.sky_core.altar": "Autel",
-
-  "creative_tabs.sky_core.gods": "Dieux"
+  "god.sky_core.cubos.name": "Cubos",
+  "dialog.cubos.basic.main": "",
+  "dialog.cubos.basic.main.first": "",
+  "dialog.cubos.basic.main.second": ""
 }

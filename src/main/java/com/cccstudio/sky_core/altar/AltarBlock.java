@@ -22,19 +22,21 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 
-
+/**
+ * @see BlockItems#ALTAR
+ */
 public class AltarBlock extends Block {
 
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
 
-    public static final GodProperty GOD = new GodProperty("god", String.class);
+    public static final GodProperty GOD = new GodProperty("god");
 
     public AltarBlock(Properties properties) {
         super(properties);
 
         registerDefaultState(stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
-                .setValue(GOD, "none")
+                .setValue(GOD, null)
         );
     }
 
@@ -48,21 +50,21 @@ public class AltarBlock extends Block {
         Direction facing = context.getHorizontalDirection().getOpposite();
         return this.defaultBlockState()
                 .setValue(FACING, facing)
-                .setValue(GOD, "none");
+                .setValue(GOD, null);
     }
 
     @Override
-    protected VoxelShape getOcclusionShape(BlockState a, BlockGetter b, BlockPos c) {
+    protected @NotNull VoxelShape getOcclusionShape(@NotNull BlockState a, @NotNull BlockGetter b, @NotNull BlockPos c) {
         return Block.box(2,0,2,14,16,14);
     }
 
     @Override
-    protected boolean isOcclusionShapeFullBlock(BlockState a, BlockGetter b, BlockPos c) {
+    protected boolean isOcclusionShapeFullBlock(@NotNull BlockState a, @NotNull BlockGetter b, @NotNull BlockPos c) {
         return false;
     }
 
     @Override
-    public void stepOn(Level a, BlockPos b, BlockState c, Entity entity) {
+    public void stepOn(@NotNull Level a, @NotNull BlockPos b, @NotNull BlockState c, @NotNull Entity entity) {
         if(entity instanceof ItemEntity itemEntity){
             Item item = itemEntity.getItem().getItem();
             for (God god : Core.GODS) {

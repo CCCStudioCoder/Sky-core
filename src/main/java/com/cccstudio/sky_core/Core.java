@@ -1,30 +1,55 @@
 package com.cccstudio.sky_core;
 
+import com.cccstudio.sky_core.api.mythical_event.IMythicalEvent;
 import com.cccstudio.sky_core.api.god.God;
 import com.cccstudio.sky_core.api.quest.Dialog;
 import com.cccstudio.sky_core.api.quest.Quest;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
-
+import net.neoforged.neoforge.registries.RegistryBuilder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
-public class Core {
+/**
+ * The Core class isn't an object at all.
+ * It provides project-related static variables.
+ * @see com.cccstudio.sky_core.api.quest.QuestHandler The quests util
+ */
+public final class Core {
 
-    public static Collection<God> GODS = new ArrayList<>();
+    public static final Collection<God> GODS = new ArrayList<>();
 
-    public static HashMap<ResourceLocation, God> GOD_LOCATIONS = new HashMap<>();
+    public static final HashMap<ResourceLocation, God> GOD_LOCATIONS = new HashMap<>();
 
-    public static Collection<Dialog> DIALOGS = new ArrayList<>();
+    public static final Collection<Dialog> DIALOGS = new ArrayList<>();
 
-    public static HashMap<ResourceLocation, Quest> QUEST_LOCATIONS = new HashMap<>();
+    public static final HashMap<ResourceLocation, Quest> QUEST_LOCATIONS = new HashMap<>();
+
+    public static final Collection<DeferredItem<Item>> INVOKERS = new ArrayList<>();
+
+    public static final Collection<Class<IMythicalEvent>> MYTHICAL_EVENTS = new ArrayList<>();
+
+
+    public static final ResourceKey<Registry<God>> GOD_REGISTRY_KEY =
+            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(SkyCore.MODID, "gods"));
+
+    public static final Registry<God> GOD_REGISTRY = new RegistryBuilder<>(GOD_REGISTRY_KEY).create();
+
+    public static final ResourceKey<Registry<Quest>> QUEST_REGISTRY_KEY =
+            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(SkyCore.MODID, "quests"));
+
+    public static final Registry<Quest> QUEST_REGISTRY = new RegistryBuilder<>(QUEST_REGISTRY_KEY).create();
 
     // Some core DeferredRegisters to help you
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPE_REGISTER =

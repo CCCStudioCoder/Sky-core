@@ -1,26 +1,33 @@
 package com.cccstudio.sky_core.api.quest;
 
 import com.cccstudio.sky_core.Core;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import com.cccstudio.sky_core.api.god.God;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class Quest {
 
-    public final ResourceLocation PATH;
+    private final ResourceLocation PATH;
 
     @Nullable
     private final Consumer<Player> ADDITIONAL_EFFECT;
 
     public Collection<God> USING_GODS;
 
+    private final Holder.Reference<Quest> REF = Core.QUEST_REGISTRY.createIntrusiveHolder(this);
+
     public Quest(ResourceLocation path, @Nullable Consumer<Player> additional_effect) {
         ADDITIONAL_EFFECT = additional_effect;
         PATH = path;
+        ResourceKey<Quest> KEY = ResourceKey.create(Core.QUEST_REGISTRY_KEY, path);
 
         Core.QUEST_LOCATIONS.put(PATH, this);
     }
@@ -43,9 +50,9 @@ public class Quest {
      */
     public void grant(Player player, int point, God god, boolean check) {
         if(USING_GODS.contains(god)) {
-            if (player.getCapability(QuestHandler.ENGAGED_QUESTS).contains(this)) {
+            if (Objects.requireNonNull(player.getCapability(QuestHandler.ENGAGED_QUESTS)).contains(this)) {
                 god.addPoints(player, point);
-                player.getCapability(QuestHandler.FINISHED_QUESTS).add(this);
+                Objects.requireNonNull(player.getCapability(QuestHandler.FINISHED_QUESTS)).add(this);
                 assert ADDITIONAL_EFFECT != null;
                 ADDITIONAL_EFFECT.accept(player);
             }
@@ -67,7 +74,7 @@ public class Quest {
     public void revoke(Player player, int point, God god) {
         if(USING_GODS.contains(god) && player.getCapability(QuestHandler.FINISHED_QUESTS).contains(this)) {
             god.addPoints(player, -point);
-            player.getCapability(QuestHandler.FINISHED_QUESTS).remove(this);
+            Objects.requireNonNull(player.getCapability(QuestHandler.FINISHED_QUESTS)).remove(this);
         } else {
             throw new IllegalArgumentException("This god doesn't use this quest or this quest hasn't be accomplished by this player.");
         }
@@ -78,6 +85,10 @@ public class Quest {
         } else {
             for(God god : gods) { revoke(player, point, god); }
         }
+    }
+
+    public boolean is(TagKey<Quest> tag) {
+        return REF.is(tag);
     }
 
 }

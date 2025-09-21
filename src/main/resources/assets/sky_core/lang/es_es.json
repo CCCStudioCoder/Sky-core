@@ -2,8 +2,12 @@
   "command.sky_core.godpoints.unknown_god": "Dios desconocido : ",
   "command.sky_core.godpoints.several_reset_success": "Todos los puntos se restablecen correctamente.",
   "command.sky_core.godpoints.reset_success": "Tus puntos han sido reseteados.",
-
+  "commands.sky_core.godpoints.not_a_player": "No has especificado ningún jugador.",
+  "commands.sky_core.godpoints.invalid_action": "Invalid action.",
+  "creative_tabs.sky_core.gods": "Dioses",
   "block.sky_core.altar": "Altar",
-
-  "creative_tabs.sky_core.gods": "Dioses"
+  "god.sky_core.cubos.name": "Cubos",
+  "dialog.cubos.basic.main": "",
+  "dialog.cubos.basic.main.first": "",
+  "dialog.cubos.basic.main.second": ""
 }

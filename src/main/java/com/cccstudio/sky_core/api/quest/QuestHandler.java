@@ -10,6 +10,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
+/**
+ * This class provides a capabilities handler for the quests.
+ */
 @SuppressWarnings("deprecated")
 public class QuestHandler {
 
@@ -23,8 +26,9 @@ public class QuestHandler {
             QuestCollection.class
     );
 
-
-    //TODO javadoc
+    /**
+     * Capabilities don't support classes with generic types, so a special class is needed.
+     */
     public static class QuestCollection implements Collection<Quest> {
 
         private final Collection<Quest> CONTENT = new ArrayList<>();

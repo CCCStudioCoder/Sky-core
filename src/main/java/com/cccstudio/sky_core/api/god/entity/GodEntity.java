@@ -47,27 +47,22 @@ public class GodEntity extends LivingEntity {
     public void readAdditionalSaveData(CompoundTag compound) {
 
     }
-
     @Override
     public Iterable<ItemStack> getArmorSlots() {
         return null;
     }
-
     @Override
     public ItemStack getItemBySlot(EquipmentSlot slot) {
         return null;
     }
-
     @Override
     public void setItemSlot(EquipmentSlot slot, ItemStack stack) {
 
     }
-
     @Override
     public HumanoidArm getMainArm() {
         return HumanoidArm.LEFT;
     }
-
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
 

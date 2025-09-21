@@ -1,5 +1,6 @@
 package com.cccstudio.sky_core.api.god.entity;
 
+import com.cccstudio.sky_core.Core;
 import com.cccstudio.sky_core.api.god.God;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -11,6 +12,13 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+/**
+ * A GodEntitySupplier works like a {@linkplain java.util.function.Supplier} to handle GodEntities;
+ * but it handles also all the behaviors associated with them.
+ * @param <E>
+ *     What GodEntity he's related to.
+ * @see God
+ */
 public class GodEntitySupplier<E extends GodEntity> {
 
     private final DeferredHolder<EntityType<?>, EntityType<GodEntity>> SUPPLIER;
@@ -59,8 +67,13 @@ public class GodEntitySupplier<E extends GodEntity> {
                 throw new RuntimeException(e);
             }
         });
+        Core.INVOKERS.add(INVOKER);
     }
 
+    /**
+     * @return
+     * The Holder of the {@link EntityType} it handle.
+     */
     public DeferredHolder<EntityType<?>, EntityType<GodEntity>> getEntity() {
         return SUPPLIER;
     }
@@ -69,6 +82,10 @@ public class GodEntitySupplier<E extends GodEntity> {
         return ENTITY_CLASS;
     }
 
+    /**
+     * @return
+     * The auto-generated "invoker" item.
+     */
     public DeferredItem<Item> getInvoker() {
         return INVOKER;
     }

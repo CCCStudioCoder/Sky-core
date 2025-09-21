@@ -2,10 +2,13 @@ package com.cccstudio.sky_core.event;
 
 import com.cccstudio.sky_core.Core;
 import com.cccstudio.sky_core.api.god.entity.GodEntity;
+import com.cccstudio.sky_core.api.mythical_event.MythicalEventHandler;
 import com.cccstudio.sky_core.command.SkyCoreCommands;
 import com.cccstudio.sky_core.cubos.CubosGod;
 import com.cccstudio.sky_core.api.god.God;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
@@ -22,12 +25,39 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
+import net.neoforged.neoforge.event.entity.player.UseItemOnBlockEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
-
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import java.util.Map;
 import java.util.Objects;
 
 @EventBusSubscriber
 public class Event {
+
+    private static int tickCount = 0;
+    @SubscribeEvent
+    public static void tickServer(ServerTickEvent.Post event) {
+        if(!MythicalEventHandler.isExecuting()) {
+            tickCount ++;
+            if(event.hasTime()) {
+                int probability = (int) ((Math.log(tickCount) - Math.log(35000)) / (Math.log(200000) - Math.log(35000)));
+                if(probability > Math.random()) {
+                    tickCount = 0;
+                    MythicalEventHandler.rollEvent(event.getServer());
+                }
+            }
+        } else {
+            MythicalEventHandler.handleEvent();
+        }
+    }
+
+    @SubscribeEvent
+    public static void playerUseItem(UseItemOnBlockEvent event) {
+        event.getPlayer().sendSystemMessage(Component.literal("touch"));
+       for(Map.Entry<ResourceLocation, God> entry : Core.GOD_LOCATIONS.entrySet()) {
+           event.getPlayer().sendSystemMessage(Component.literal(entry.getKey().toString() + " : " + entry.getValue().getName()));
+       }
+    }
 
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event) {

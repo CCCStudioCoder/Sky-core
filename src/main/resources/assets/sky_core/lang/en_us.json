@@ -5,5 +5,15 @@
 
   "creative_tabs.sky_core.gods": "Gods",
 
-  "block.sky_core.altar": "Altar"
+  "block.sky_core.altar": "Altar",
+
+  "god.sky_core.cubos.name": "Cubos",
+
+  "dialog.cubos.basic.main": "",
+  "dialog.cubos.basic.main.first": "",
+  "dialog.cubos.basic.main.second": "",
+  "command.sky_core.godpoints.not_a_player": "You're not a player!",
+  "command.sky_core.godpoints.invalid_action": "Invalid action!",
+  "command.sky_core.godpoints.unknown_action": "Unknown action!",
+  "command.sky_core.godquests.unknown_quest": "Unknown quest!"
 }
